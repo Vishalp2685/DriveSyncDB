@@ -1,12 +1,12 @@
 import os
 import time
 
-RUNTIME_DIR = '/tmp'
+RUNTIME_DIR = '/temp'
 # Ensure the runtime directory exists
 os.makedirs(RUNTIME_DIR, exist_ok=True)
 
 def get_db_path():
-    # Use /tmp/db_1.sqlite on Render, else use env or default
+    # Use /temp/db_1.sqlite on Render, else use env or default
     return os.path.join(RUNTIME_DIR, os.environ.get('db_name', 'db_1.sqlite'))
 
 DB_PATH = get_db_path()
