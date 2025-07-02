@@ -4,8 +4,11 @@ import logging
 import portalocker
 from contextlib import contextmanager
 
-LOCK_FILE = 'db.lock'
-LOG_FILE = 'app.log'
+LOCK_FILE = 'tmp/lock/db.lock'
+LOG_FILE = 'tmp/logs/app.log'
+
+os.makedirs("tmp/lock", exist_ok=True)
+os.makedirs("tmp/logs", exist_ok=True)
 
 # Setup logging
 logging.basicConfig(
