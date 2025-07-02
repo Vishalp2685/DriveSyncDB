@@ -1,7 +1,7 @@
 import os
 import time
 
-RUNTIME_DIR = '/temp'
+RUNTIME_DIR = '/tmp'
 # Ensure the runtime directory exists
 os.makedirs(RUNTIME_DIR, exist_ok=True)
 
