@@ -3,7 +3,7 @@ import sqlite3
 import shutil
 from utils import log_info, log_error
 
-BACKUP_DIR = "/temp/backups"
+BACKUP_DIR = "/tmp/backups"
 MAX_BACKUPS = 3
 os.makedirs(BACKUP_DIR,exist_ok=True)
 
