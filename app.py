@@ -290,6 +290,19 @@ def dashboard():
         disk=disk
     )
 
+@app.route('/logs', methods=['GET'])
+def get_logs():
+    log_path = os.path.join(os.path.dirname(DB_PATH), 'app.log')
+    if not os.path.exists(log_path):
+        return jsonify({'error': 'Log file not found'}), 404
+    with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+        content = f.read()
+    # Optionally, limit the log size returned
+    max_chars = 10000
+    if len(content) > max_chars:
+        content = content[-max_chars:]
+    return ('<pre>' + content + '</pre>')
+
 # Main entry
 if __name__ == "__main__":
     initialize_db()
