@@ -6,5 +6,4 @@ google-auth-httplib2
 portalocker
 psutil
 PyJWT
-gzip  
 gunicorn
