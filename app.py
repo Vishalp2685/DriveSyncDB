@@ -18,7 +18,7 @@ app = Flask(__name__)
 REQUIRED_TABLES = None  # Set to a list of required tables if needed
 SCHEMA_SQL = None  # Optionally provide SQL schema for new DB
 
-DB_PATH = 'db_1.sqlite'
+DB_PATH = '/tmp/db_1.sqlite'
 
 # Compression helper
 def compress_file(src, dst):
