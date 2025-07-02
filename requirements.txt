@@ -7,3 +7,4 @@ portalocker
 psutil
 PyJWT
 gunicorn
+bcrypt
