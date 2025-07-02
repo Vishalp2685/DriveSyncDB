@@ -10,12 +10,17 @@ import psutil
 import jwt
 from datetime import datetime, timedelta
 from dashboard import dash_bp
-from db_shared import DB_PATH, get_last_hash, set_last_hash, get_last_timestamp, set_last_timestamp
 import bcrypt
+from dotenv import load_dotenv
+from db_shared import get_last_hash, set_last_hash, get_last_timestamp, set_last_timestamp
+
+load_dotenv()
 
 app = Flask(__name__)
 REQUIRED_TABLES = None  # Set to a list of required tables if needed
 SCHEMA_SQL = None  # Optionally provide SQL schema for new DB
+
+DB_PATH = '/tmp/db_1.sqlite'
 
 # Compression helper
 def compress_file(src, dst):
