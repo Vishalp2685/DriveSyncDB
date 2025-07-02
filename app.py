@@ -19,7 +19,7 @@ REQUIRED_TABLES = None  # Set to a list of required tables if needed
 SCHEMA_SQL = None  # Optionally provide SQL schema for new DB
 
 DB_PATH = '/tmp/db_1.sqlite'
-
+os.makedirs(DB_PATH,exist_ok=True)
 # Compression helper
 def compress_file(src, dst):
     with open(src, 'rb') as f_in, gzip.open(dst, 'wb') as f_out:
@@ -108,7 +108,7 @@ def require_jwt(func):
 
 # API Endpoints
 @app.route('/query', methods=['POST'])
-# @require_jwt
+@require_jwt
 def query():
     data = request.get_json()
     sql = data.get('sql')
@@ -302,6 +302,7 @@ def get_logs():
     if len(content) > max_chars:
         content = content[-max_chars:]
     return ('<pre>' + content + '</pre>')
+
 
 # Main entry
 if __name__ == "__main__":

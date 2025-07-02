@@ -7,6 +7,9 @@ from contextlib import contextmanager
 LOCK_FILE = '/tmp/db.lock'
 LOG_FILE = '/tmp/app.log'
 
+os.makedirs(LOCK_FILE,exist_ok=True)
+os.makedirs(LOG_FILE,exist_ok=True)
+
 # Setup logging
 logging.basicConfig(
     filename=LOG_FILE,
