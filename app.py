@@ -12,9 +12,6 @@ from datetime import datetime, timedelta
 from dashboard import dash_bp
 from db_shared import DB_PATH, get_last_hash, set_last_hash, get_last_timestamp, set_last_timestamp
 import bcrypt
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 REQUIRED_TABLES = None  # Set to a list of required tables if needed
