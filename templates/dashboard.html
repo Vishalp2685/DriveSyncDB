@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Database Dashboard</title>
+    <link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Database Dashboard</h1>
+        <section>
+            <h2>Database Info</h2>
+            <table>
+                <tr><th>File</th><td>{{db_file}}</td></tr>
+                <tr><th>Exists</th><td class="{{'ok' if db_exists_flag else 'fail'}}">{{'Yes' if db_exists_flag else 'No'}}</td></tr>
+                <tr><th>Size (bytes)</th><td>{{db_size}}</td></tr>
+                <tr><th>Size (MB)</th><td>{{db_size_mb}}</td></tr>
+                <tr><th>SHA256 Hash</th><td>{{db_hash}}</td></tr>
+                <tr><th>Last Change (timestamp)</th><td>{{db_last_ts}}</td></tr>
+                <tr><th>User Count</th><td>{{user_count}}</td></tr>
+            </table>
+        </section>
+        <section>
+            <h2>Backups</h2>
+            <table>
+                <tr><th>Name</th><th>Size (mb)</th><th>Last Modified</th></tr>
+                {% for b in backups %}
+                <tr><td>{{b.name}}</td><td>{{b.size}}</td><td>{{b.mtime}}</td></tr>
+                {% endfor %}
+                {% if not backups %}<tr><td colspan=3>No backups found</td></tr>{% endif %}
+            </table>
+        </section>
+        <section>
+            <h2>System Status</h2>
+            <table>
+                <tr><th>RAM Used</th><td>{{mem.used}} / {{mem.total}} ({{mem.percent}}%)</td></tr>
+                <tr><th>CPU Usage</th><td>{{cpu}}%</td></tr>
+                <tr><th>Disk Used</th><td>{{disk.used}} / {{disk.total}} ({{disk.percent}}%)</td></tr>
+            </table>
+        </section>
+    </div>
+</body>
+</html>

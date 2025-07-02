@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+instance/
+.env
+uploads/
+static/uploads/
+*.sqlite3
+*.sqlite
+*.lock
+backups/
+*.log
+*.db
+.DS_Store
+.vscode/
