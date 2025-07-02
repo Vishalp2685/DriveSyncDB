@@ -11,10 +11,7 @@ import jwt
 from datetime import datetime, timedelta
 from dashboard import dash_bp
 import bcrypt
-from dotenv import load_dotenv
 from db_shared import get_last_hash, set_last_hash, get_last_timestamp, set_last_timestamp
-
-load_dotenv()
 
 app = Flask(__name__)
 REQUIRED_TABLES = None  # Set to a list of required tables if needed
