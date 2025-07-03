@@ -34,11 +34,11 @@ def initialize_db():
         drive_path = download_latest_db_from_drive(DB_PATH)
         if drive_path and validate_sqlite_db(DB_PATH, REQUIRED_TABLES):
             log_info("DB downloaded and validated.")
-            return jsonify({"db downloaded and validated"})
+            # return jsonify("db downloaded and validated")
         else:
             log_info("Drive fetch failed or DB invalid. Creating new empty DB.")
             create_empty_db(DB_PATH, SCHEMA_SQL)
-            return jsonify({"Created_empty db"})
+            # return jsonify("Created_empty db")
     else:
         if not validate_sqlite_db(DB_PATH, REQUIRED_TABLES):
             log_info("Local DB invalid. Attempting repair/restore from backup...")
