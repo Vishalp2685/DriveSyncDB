@@ -27,15 +27,18 @@ def compress_file(src, dst):
         f_out.writelines(f_in)
 
 # Initialization logic
+@app.route('/init_db',methods = ['POST'])
 def initialize_db():
     if not db_exists(DB_PATH):
         log_info("Local DB not found. Trying to fetch from Google Drive...")
         drive_path = download_latest_db_from_drive(DB_PATH)
         if drive_path and validate_sqlite_db(DB_PATH, REQUIRED_TABLES):
             log_info("DB downloaded and validated.")
+            return jsonify({"db downloaded and validated"})
         else:
             log_info("Drive fetch failed or DB invalid. Creating new empty DB.")
             create_empty_db(DB_PATH, SCHEMA_SQL)
+            return jsonify({"Created_empty db"})
     else:
         if not validate_sqlite_db(DB_PATH, REQUIRED_TABLES):
             log_info("Local DB invalid. Attempting repair/restore from backup...")
@@ -212,6 +215,7 @@ def memstatus():
     })
 
 # Ensure at least one default user exists for JWT login
+@app.route('/create_jwt_table',methods = ['POST'])
 def ensure_jwt_login_table():
     with file_lock():
         conn = sqlite3.connect(DB_PATH)
@@ -225,7 +229,9 @@ def ensure_jwt_login_table():
         ''')
         conn.commit()
         conn.close()
+    return "table created"
 
+@app.route('/create_login',methods = ['POST'])
 def ensure_default_user():
     default_username = os.getenv('JWT_ADMIN_USERNAME')
     default_password = os.getenv('JWT_ADMIN_PASSWORD')
@@ -239,10 +245,14 @@ def ensure_default_user():
                 (default_username, hashed_pw)
             )
             conn.commit()
+            conn.close()
             log_info(f"Default user created: {default_username}")
+            return "Default created"
         else:
             log_info(f"Default user already exists: {default_username}")
-        conn.close()
+            conn.close()
+            return "default already exist"
+
 # Dashboard route (was blueprint, now direct route)
 @app.route("/")
 def dashboard():
