@@ -120,9 +120,9 @@ def query():
         return jsonify({'error': 'Missing SQL query'}), 400
     is_write = sql.strip().split()[0].lower() in {'insert', 'update', 'delete', 'replace', 'create', 'drop', 'alter'}
     try:
-        with file_lock():
-            conn = sqlite3.connect(DB_PATH)
-            if is_write:
+        if is_write:
+            with file_lock():
+                conn = sqlite3.connect(DB_PATH)
                 conn.execute('BEGIN')
                 try:
                     conn.execute(sql)
@@ -132,10 +132,9 @@ def query():
                     if new_hash != last_hash:
                         set_last_hash(new_hash)
                         set_last_timestamp(time.time())
-                        # Optionally compress before upload
                         compressed = DB_PATH + '.gz'
                         compress_file(DB_PATH, compressed)
-                        perform_backup(DB_PATH)   # You can modify perform_backup to use compressed if desired
+                        perform_backup(DB_PATH)
                         os.remove(compressed)
                         log_info('Backup and sync complete.')
                     return jsonify({'status': 'success', 'hash': new_hash})
@@ -143,10 +142,12 @@ def query():
                     conn.rollback()
                     log_error(f"Write failed:  {e}")
                     return jsonify({'error': str(e)}), 400
-            else:
-                cur = conn.execute(sql)
-                rows = cur.fetchall()
-                return jsonify({'result': rows})
+        else:
+            # No lock for read-only queries
+            conn = sqlite3.connect(DB_PATH)
+            cur = conn.execute(sql)
+            rows = cur.fetchall()
+            return jsonify({'result': rows})
     except Exception as e:
         log_error(f"Query error: {e}")
         return jsonify({'error': str(e)}), 500
