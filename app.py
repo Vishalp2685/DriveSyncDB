@@ -313,10 +313,13 @@ def get_logs():
         content = content[-max_chars:]
     return ('<pre>' + content + '</pre>')
 
-
-# Main entry
-if __name__ == "__main__":
+@app.route('/start_db',methods = ["GET"])
+def startup_tasks():
     initialize_db()
     ensure_jwt_login_table()
     ensure_default_user()
-    app.run(debug=True)
+    return "DB_started"
+
+# Main entry
+if __name__ == "__main__":
+    app.run()
