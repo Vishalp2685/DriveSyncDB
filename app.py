@@ -141,6 +141,8 @@ def query():
                     conn.rollback()
                     log_error(f"Write failed:  {e}")
                     return jsonify({'error': str(e)}), 400
+                finally:
+                    conn.close()
         else:
             # No lock for read-only queries
             conn = get_sqlite_connection(DB_PATH)
@@ -150,6 +152,8 @@ def query():
     except Exception as e:
         log_error(f"Query error: {e}")
         return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
 
 @app.route('/health', methods=['GET'])
 def health():
