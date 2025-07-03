@@ -4,6 +4,8 @@ import logging
 import portalocker
 import platform
 from contextlib import contextmanager
+import sqlite3
+import time
 
 tmp_PATH = os.path.join(os.path.dirname(__file__), 'temp') if platform.system() == 'Windows' else '/tmp/Drive_temp'
 
@@ -38,10 +40,16 @@ def file_lock(lock_file=LOCK_FILE):
         finally:
             portalocker.unlock(lock_fd)
 
-# Exponential backoff
-import time
-
 def exponential_backoff(retries):
     delay = min(2 ** retries, 60)
     log_info(f'Waiting {delay}s before retry...')
     time.sleep(delay)
+
+def get_sqlite_connection(db_path):
+    """Get a SQLite connection with WAL mode enabled."""
+    conn = sqlite3.connect(db_path, check_same_thread=False)
+    try:
+        conn.execute('PRAGMA journal_mode=WAL;')
+    except Exception as e:
+        log_error(f"Failed to set WAL mode: {e}")
+    return conn

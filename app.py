@@ -3,7 +3,7 @@ import os
 import sqlite3
 from db_manager import db_exists, validate_sqlite_db, restore_from_backup, create_empty_db, calculate_db_hash, rotate_local_backups
 from drive_utils import download_latest_db_from_drive, perform_backup
-from utils import log_info, log_error, file_lock
+from utils import log_info, log_error, file_lock, get_sqlite_connection
 import time
 import gzip
 import psutil
@@ -82,7 +82,7 @@ def login():
         return jsonify({'error': 'Missing username or password'}), 400
     try:
         with file_lock():
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_sqlite_connection(DB_PATH)
             cur = conn.execute('SELECT password FROM jwt_login WHERE username=?', (username,))
             row = cur.fetchone()
             if row:
@@ -122,7 +122,7 @@ def query():
     try:
         if is_write:
             with file_lock():
-                conn = sqlite3.connect(DB_PATH)
+                conn = get_sqlite_connection(DB_PATH)
                 conn.execute('BEGIN')
                 try:
                     conn.execute(sql)
@@ -144,7 +144,7 @@ def query():
                     return jsonify({'error': str(e)}), 400
         else:
             # No lock for read-only queries
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_sqlite_connection(DB_PATH)
             cur = conn.execute(sql)
             rows = cur.fetchall()
             return jsonify({'result': rows})
@@ -219,7 +219,7 @@ def memstatus():
 @app.route('/create_jwt_table',methods = ['GET'])
 def ensure_jwt_login_table():
     with file_lock():
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_sqlite_connection(DB_PATH)
         conn.execute('''
             CREATE TABLE IF NOT EXISTS jwt_login (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -237,7 +237,7 @@ def ensure_default_user():
     default_username = os.getenv('JWT_ADMIN_USERNAME')
     default_password = os.getenv('JWT_ADMIN_PASSWORD')
     with file_lock():
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_sqlite_connection(DB_PATH)
         cur = conn.execute("SELECT * FROM jwt_login WHERE username=?", (default_username,))
         if not cur.fetchone():
             hashed_pw = bcrypt.hashpw(default_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -266,7 +266,7 @@ def dashboard():
     user_count = 0
     with file_lock():
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = get_sqlite_connection(DB_PATH)
             cur = conn.execute("SELECT COUNT(*) FROM jwt_login")
             user_count = cur.fetchone()[0]
             conn.close()
