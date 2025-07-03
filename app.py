@@ -27,7 +27,7 @@ def compress_file(src, dst):
         f_out.writelines(f_in)
 
 # Initialization logic
-@app.route('/init_db',methods = ['POST'])
+@app.route('/init_db',methods = ['GET'])
 def initialize_db():
     if not db_exists(DB_PATH):
         log_info("Local DB not found. Trying to fetch from Google Drive...")
@@ -215,7 +215,7 @@ def memstatus():
     })
 
 # Ensure at least one default user exists for JWT login
-@app.route('/create_jwt_table',methods = ['POST'])
+@app.route('/create_jwt_table',methods = ['GET'])
 def ensure_jwt_login_table():
     with file_lock():
         conn = sqlite3.connect(DB_PATH)
@@ -231,7 +231,7 @@ def ensure_jwt_login_table():
         conn.close()
     return "table created"
 
-@app.route('/create_login',methods = ['POST'])
+@app.route('/create_login',methods = ['GET'])
 def ensure_default_user():
     default_username = os.getenv('JWT_ADMIN_USERNAME')
     default_password = os.getenv('JWT_ADMIN_PASSWORD')
