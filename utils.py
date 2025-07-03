@@ -1,5 +1,4 @@
 import os
-import threading
 import logging
 import portalocker
 import platform
@@ -46,10 +45,17 @@ def exponential_backoff(retries):
     time.sleep(delay)
 
 def get_sqlite_connection(db_path):
-    """Get a SQLite connection with WAL mode enabled."""
-    conn = sqlite3.connect(db_path, check_same_thread=False)
+    """Get a SQLite connection with optimized PRAGMA settings."""
+    conn = sqlite3.connect(db_path, timeout=10, check_same_thread=False)
     try:
+        # WAL mode allows concurrent reads during a write.
         conn.execute('PRAGMA journal_mode=WAL;')
+        # Normal sync is faster. The OS will still handle commits. Less durable in a power failure.
+        conn.execute('PRAGMA synchronous=NORMAL;')
+        # Increase cache size (e.g., 64MB). -64000 means 64000 KiloBytes.
+        conn.execute('PRAGMA cache_size = -64000;')
+        # Use more memory for temporary storage before writing to disk.
+        conn.execute('PRAGMA temp_store = MEMORY;')
     except Exception as e:
-        log_error(f"Failed to set WAL mode: {e}")
+        log_error(f"Failed to set PRAGMA modes: {e}")
     return conn

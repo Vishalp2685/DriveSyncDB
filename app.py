@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, render_template, current_app
 import os
-import sqlite3
 from db_manager import db_exists, validate_sqlite_db, restore_from_backup, create_empty_db, calculate_db_hash, rotate_local_backups
 from drive_utils import download_latest_db_from_drive, perform_backup
 from utils import log_info, log_error, file_lock, get_sqlite_connection
@@ -13,6 +12,7 @@ import bcrypt
 from db_shared import get_last_hash, set_last_hash, get_last_timestamp, set_last_timestamp
 import platform
 from dotenv import load_dotenv
+from threading import Thread
 load_dotenv()
 
 app = Flask(__name__)
@@ -110,6 +110,36 @@ def require_jwt(func):
     return wrapper
 
 # API Endpoints
+from threading import Thread
+
+# --- In app.py ---
+
+def backup_and_sync_task(db_path):
+    """A function to run all the slow backup tasks in the background."""
+    log_info("Background backup task started.")
+    with file_lock(): # Use the same lock to prevent race conditions
+        try:
+            # Hash the database file
+            new_hash = calculate_db_hash(db_path)
+            last_hash = get_last_hash()
+
+            if new_hash != last_hash:
+                log_info("Database has changed, proceeding with backup and sync.")
+                set_last_hash(new_hash)
+                set_last_timestamp(time.time())
+
+                # Compress and upload
+                # compressed_path = db_path + '.gz'
+                # compress_file(db_path, compressed_path)
+                perform_backup(db_path) # This function handles local and Drive backups
+                # os.remove(compressed_path)
+                
+                log_info("Background backup and sync complete.")
+            else:
+                log_info("No database changes detected. Skipping backup.")
+        except Exception as e:
+            log_error(f"Error in background backup task: {e}")
+
 @app.route('/query', methods=['POST'])
 @require_jwt
 def query():
@@ -117,7 +147,10 @@ def query():
     sql = data.get('sql')
     if not sql:
         return jsonify({'error': 'Missing SQL query'}), 400
+    
     is_write = sql.strip().split()[0].lower() in {'insert', 'update', 'delete', 'replace', 'create', 'drop', 'alter'}
+    
+    conn = None # Define conn outside try block
     try:
         if is_write:
             with file_lock():
@@ -126,25 +159,19 @@ def query():
                 try:
                     conn.execute(sql)
                     conn.commit()
-                    new_hash = calculate_db_hash(DB_PATH)
-                    last_hash = get_last_hash()
-                    if new_hash != last_hash:
-                        set_last_hash(new_hash)
-                        set_last_timestamp(time.time())
-                        compressed = DB_PATH + '.gz'
-                        compress_file(DB_PATH, compressed)
-                        perform_backup(DB_PATH)
-                        os.remove(compressed)
-                        log_info('Backup and sync complete.')
-                    return jsonify({'status': 'success', 'hash': new_hash})
+                    
+                    # Instead of running tasks here, start a background thread
+                    thread = Thread(target=backup_and_sync_task, args=(DB_PATH,))
+                    thread.start()
+                    
+                    return jsonify({'status': 'success, write operation accepted'})
                 except Exception as e:
-                    conn.rollback()
-                    log_error(f"Write failed:  {e}")
+                    if conn:
+                        conn.rollback()
+                    log_error(f"Write failed: {e}")
                     return jsonify({'error': str(e)}), 400
-                finally:
-                    conn.close()
         else:
-            # No lock for read-only queries
+            # Read-only queries remain the same
             conn = get_sqlite_connection(DB_PATH)
             cur = conn.execute(sql)
             rows = cur.fetchall()
@@ -153,7 +180,8 @@ def query():
         log_error(f"Query error: {e}")
         return jsonify({'error': str(e)}), 500
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 @app.route('/health', methods=['GET'])
 def health():
