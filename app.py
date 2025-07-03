@@ -11,14 +11,15 @@ import jwt
 from datetime import datetime, timedelta
 import bcrypt
 from db_shared import get_last_hash, set_last_hash, get_last_timestamp, set_last_timestamp
-# from dotenv import load_dotenv
-# load_dotenv()
+import platform
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
-REQUIRED_TABLES = None  # Set to a list of required tables if needed
+REQUIRED_TABLES = ['jwt_login']  # Set to a list of required tables if needed
 SCHEMA_SQL = None  # Optionally provide SQL schema for new DB
-
-DB_PATH = '/tmp/db_1.sqlite'
+tmp_PATH = os.path.join(os.path.dirname(__file__), 'temp') if platform.system() == 'Windows' else '/tmp/Drive_temp'
+DB_PATH = os.path.join(tmp_PATH,'db_1.sqlite') 
 os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 # Compression helper
 def compress_file(src, dst):
@@ -228,7 +229,6 @@ def ensure_jwt_login_table():
 def ensure_default_user():
     default_username = os.getenv('JWT_ADMIN_USERNAME')
     default_password = os.getenv('JWT_ADMIN_PASSWORD')
-    print(default_password,default_username)
     with file_lock():
         conn = sqlite3.connect(DB_PATH)
         cur = conn.execute("SELECT * FROM jwt_login WHERE username=?", (default_username,))

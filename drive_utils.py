@@ -3,10 +3,11 @@ import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+import platform
 from utils import log_info, log_error, exponential_backoff
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
-BACKUP_DIR = "backups"
+BACKUP_DIR = os.path.join(os.path.dirname(__file__), 'temp/backups') if platform.system() == 'Windows' else '/tmp/Drive_temp/backups'
 MAX_BACKUPS = 3
 folder_id = os.getenv('FOLDER_ID')
 
@@ -82,6 +83,7 @@ def download_latest_db_from_drive(destination_path='db_1.sqlite'):
             query += f" and '{folder_id}' in parents"
         result = service.files().list(q=query, fields="files(id, name)", pageSize=1).execute()
         items = result.get('files', [])
+        print(items)
         if not items:
             log_error("❌ No db_1.sqlite found on Drive.")
             return None

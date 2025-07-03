@@ -2,10 +2,13 @@ import os
 import threading
 import logging
 import portalocker
+import platform
 from contextlib import contextmanager
 
-LOCK_FILE = '/tmp/db.lock'
-LOG_FILE = '/tmp/app.log'
+tmp_PATH = os.path.join(os.path.dirname(__file__), 'temp') if platform.system() == 'Windows' else '/tmp/Drive_temp'
+
+LOCK_FILE = os.path.join(tmp_PATH,'db.lock')
+LOG_FILE = os.path.join(tmp_PATH,'app.log')
 
 os.makedirs(os.path.dirname(LOCK_FILE),exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE),exist_ok=True)

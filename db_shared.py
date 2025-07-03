@@ -1,7 +1,9 @@
 import os
 import time
+import platform
 
-RUNTIME_DIR = '/tmp'
+RUNTIME_DIR = os.path.join(os.path.dirname(__file__), 'temp') if platform.system() == 'Windows' else '/tmp/Drive_temp'
+
 # Ensure the runtime directory exists
 os.makedirs(RUNTIME_DIR, exist_ok=True)
 

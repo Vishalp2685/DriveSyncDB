@@ -2,15 +2,18 @@ import os
 import sqlite3
 import shutil
 from utils import log_info, log_error
+import platform
 
-BACKUP_DIR = "/tmp/backups"
+tmp_PATH = os.path.join(os.path.dirname(__file__), 'temp') if platform.system() == 'Windows' else '/tmp/Drive_temp'
+
+BACKUP_DIR = os.path.join(tmp_PATH,"backups")
 MAX_BACKUPS = 3
 os.makedirs(BACKUP_DIR,exist_ok=True)
 
 def db_exists(db_path):
     return os.path.exists(db_path)
 
-def validate_sqlite_db(path, required_tables=None):
+def validate_sqlite_db(path, required_tables=['jwt_login']):
     if not os.path.exists(path):
         log_error("❌ File not found.")
         return False
@@ -64,6 +67,7 @@ def create_empty_db(db_path, schema_sql=None):
         conn.executescript(schema_sql)
     conn.close()
     log_info(f"Created new empty DB at {db_path}")
+    
 
 def calculate_db_hash(db_path):
     import hashlib
